@@ -1,28 +1,68 @@
+get_hash_table_stats
+
+This function takes a pointer to a hash_table_t structure and pointers to variables where it will store the maximum number of collisions and the average number of collisions per bucket. 
+It iterates through the array of linked lists in the hash table, counting the number of nodes in each list and updating the max_collisions and total_collisions variables as needed. 
+It then calculates the average number of collisions by dividing the total number of collisions by the number of buckets in the hash table.
+
+___________________________________________________________________________________________________________________________________________
+
 hash_table_create
 
-This function appears to be creating a new hash table and allocating memory for it on the heap. The hash_table_t type is defined elsewhere, but it looks like it's a struct that represents a hash table. The function then initializes the members of the struct, including allocating memory for the array that will hold the actual data in the hash table. If there is not enough memory available to allocate for the hash table, the function prints an error message and exits the program. Finally, the function returns a pointer to the newly-allocated hash table.
+This function appears to be creating a new hash table and allocating memory for it on the heap. 
+The hash_table_t type is defined elsewhere, but it looks like it's a struct that represents a hash table. 
+The function then initializes the members of the struct, including allocating memory for the array that will hold the actual data in the hash table. 
+If there is not enough memory available to allocate for the hash table, the function prints an error message and exits the program. 
+Finally, the function returns a pointer to the newly-allocated hash table.
 
 DEPOIS DE CRIADA A FUNÇÃO
 
-This implementation initializes the size and count members of the hash_table_t struct, and also allocates memory for the array that will hold the items in the hash table. It sets all the items in the array to NULL to indicate that they are empty.
-Note that this function assumes that the DEFAULT_HASH_TABLE_SIZE constant is defined elsewhere and specifies the initial size of the hash table. It also assumes that hash_table_item_t is the type of the items that will be stored in the hash table.
+This implementation initializes the size and count members of the hash_table_t struct, and also allocates memory for the array that will hold the items in the hash table. 
+It sets all the items in the array to NULL to indicate that they are empty.
+Note that this function assumes that the DEFAULT_HASH_TABLE_SIZE constant is defined elsewhere and specifies the initial size of the hash table. 
+It also assumes that hash_table_item_t is the type of the items that will be stored in the hash table.
 
 ___________________________________________________________________________________________________________________________________________
 
 hash_table_grow
 
-This function first creates a new hash table with double the size of the original one. Then it iterates over the original hash table and adds each entry to the new hash table. Finally, it frees the original hash table and sets the new hash table as the current one.
+This function first creates a new hash table with double the size of the original one. 
+Then it iterates over the original hash table and adds each entry to the new hash table. 
+Finally, it frees the original hash table and sets the new hash table as the current one.
 
 ___________________________________________________________________________________________________________________________________________
 
 hash_table_free
 
-To properly free a hash table, we need to first free each linked list in the table. We can do this by iterating through the array of linked list heads and freeing each linked list. After all linked lists have been freed, we can then free the array of linked list heads, as well as the hash table itself.
+To properly free a hash table, we need to first free each linked list in the table. 
+We can do this by iterating through the array of linked list heads and freeing each linked list. 
+After all linked lists have been freed, we can then free the array of linked list heads, as well as the hash table itself.
 
 ___________________________________________________________________________________________________________________________________________
 
 find_word
 
-This implementation searches the linked list for the given bucket for the word, and returns the node if it is found. If the word is not found and the insert_if_not_found flag is set, it allocates a new node, inserts it into the linked list, and sets the default values for the vertex and union find data. It also updates the number of entries in the hash table if a new node is inserted. If the word is not found and the insert_if_not_found flag is not set, it returns NULL.
+This implementation searches the linked list for the given bucket for the word, and returns the node if it is found. 
+If the word is not found and the insert_if_not_found flag is set, it allocates a new node, inserts it into the linked list, and sets the default values for the vertex and union find data. 
+It also updates the number of entries in the hash table if a new node is inserted. 
+If the word is not found and the insert_if_not_found flag is not set, it returns NULL.
     
 ___________________________________________________________________________________________________________________________________________
+
+find_representative
+
+This function uses path compression to find the representative of the connected component that node belongs to. 
+It first sets representative to node, then follows the chain of representative pointers until it reaches a vertex whose representative pointer points to itself (this vertex is the representative of its connected component). 
+The function then sets next_node to node and follows the chain of representative pointers again, this time updating each vertex's representative pointer to point directly to the representative of the connected component.
+This has the effect of flattening the chain of representative pointers, so that future calls to find_representative will be faster.
+
+___________________________________________________________________________________________________________________________________________
+
+add_edge
+
+This function adds an edge from the "from" vertex to the "to" vertex in the graph represented by the hash_table structure. 
+It first calls find_word to find the hash_table_node_t structure representing the "to" vertex. 
+It then uses the find_representative function to find the representatives of the "from" and "to" vertices in their respective connected components. 
+If the representatives are not the same, then the function creates a new adjacency_node_t structure to represent the edge and adds it to the adjacency list of the "from" vertex.
+It also updates the representative, number_of_vertices, and number_of_edges fields of the representatives of the connected components containing the "from" and "to" vertices to reflect the new edge. 
+Note that this function does not update the number_of_edges field in the hash_table structure. 
+This field is only for informational purposes and is not used for any algorithms.

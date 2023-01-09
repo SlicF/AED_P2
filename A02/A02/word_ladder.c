@@ -4,7 +4,8 @@
 // Second practical assignement (speed run)
 //
 // Place your student numbers and names here
-//   N.Mec. XXXXXX  Name: XXXXXXX
+//   N.Mec. 107298  Name: Rodrigo Azevedo
+//   N.Mec. 108011  Name: Fábio Matias
 //
 // Do as much as you can
 //   1) MANDATORY: complete the hash table code
@@ -135,6 +136,29 @@ static void free_hash_table_node(hash_table_node_t *node)
 //
 // hash table stuff (mostly to be done)
 //
+
+void get_hash_table_stats(const hash_table_t *hash_table, int *max_collisions, double *avg_collisions)
+{
+  int i, collisions, total_collisions;
+  hash_table_node_t *node;
+
+  *max_collisions = 0;
+  total_collisions = 0;
+  for (i = 0; i < hash_table->hash_table_size; i++)
+  {
+    collisions = 0;
+    node = hash_table->heads[i];
+    while (node != NULL)
+    {
+      collisions++;
+      node = node->next;
+    }
+    *max_collisions = (*max_collisions > collisions) ? *max_collisions : collisions;
+    total_collisions += collisions;
+  }
+  *avg_collisions = (double) total_collisions / hash_table->hash_table_size;
+}
+
 
 unsigned int crc32(const char *str)
 {
@@ -297,11 +321,20 @@ static hash_table_node_t *find_representative(hash_table_node_t *node)
 {
   hash_table_node_t *representative,*next_node;
 
-  //
-  // complete this
-  //
+  representative = node;
+  while (representative->representative != representative)
+  {
+    representative = representative->representative;
+  }
+  next_node = node;
+  while (next_node->representative != next_node)
+  {
+    next_node = next_node->representative;
+    next_node->representative = representative;
+  }
   return representative;
 }
+
 
 static void add_edge(hash_table_t *hash_table,hash_table_node_t *from,const char *word)
 {
@@ -309,10 +342,22 @@ static void add_edge(hash_table_t *hash_table,hash_table_node_t *from,const char
   adjacency_node_t *link;
 
   to = find_word(hash_table,word,0);
-  //
-  // complete this
-  //
+  from_representative = find_representative(from);
+  to_representative = find_representative(to);
+  if (from_representative != to_representative)
+  {
+    link = allocate_adjacency_node();
+    link->vertex = to;
+    link->next = from->head;
+    from->head = link;
+    from_representative->representative = to_representative;
+    from_representative->number_of_vertices += to_representative->number_of_vertices;
+    from_representative->number_of_edges += to_representative->number_of_edges + 1;
+    to_representative->number_of_vertices = from_representative->number_of_vertices;
+    to_representative->number_of_edges = from_representative->number_of_edges;
+  }
 }
+
 
 
 //
@@ -475,6 +520,8 @@ static void graph_info(hash_table_t *hash_table)
 
 int main(int argc,char **argv)
 {
+  int max_collisions;
+  double avg_collisions;
   char word[100],from[100],to[100];
   hash_table_t *hash_table;
   hash_table_node_t *node;
@@ -527,6 +574,11 @@ int main(int argc,char **argv)
     else if(command == 3)
       break;
   }
+
+  get_hash_table_stats(hash_table, &max_collisions, &avg_collisions);
+  printf("Maximum number of collisions: %d\n", max_collisions);
+  printf("Average number of collisions: %f\n", avg_collisions);
+
   // clean up
   hash_table_free(hash_table);
   return 0;
